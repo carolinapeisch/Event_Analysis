@@ -1,0 +1,45 @@
+""" You use mongo in the command line to collect these tweets - this code will stream until you stop it, it will not read the self.n and self.m"""
+import tweepy
+import pymongo
+from tweepy.api import API
+
+API_KEY = ''
+API_SECRET = ''
+ACCESS_TOKEN = ''
+ACCESS_TOKEN_SECRET = ''
+key = tweepy.OAuthHandler(API_KEY, API_SECRET)
+key.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+
+class CustomStreamListener(tweepy.StreamListener):
+    def __init__(self, api=None):
+        self.api = api
+     
+        self.db = pymongo.MongoClient().Name
+
+    def on_status(self, status):
+        data = {}
+        data['tweet'] = status.text.replace("\n", "").replace("\r", "").encode("UTF-8")
+        data['user'] = status.user.screen_name
+        data['created_at'] = status.created_at
+        data['geo'] = status.geo
+        data['source'] = status.source
+        data['language'] = status.lang
+
+        self.db.Istanbul_Courthouse_Correct.insert(data)
+
+        # name what you what the collection of tweets to be called
+
+
+#Looking at locations?
+#GEOBOX_WORLD = [-180,-90,180,90]
+# change geobox to location, use box website
+GEOBOX_ISTANBUL = [28.818027,40.868546,29.277743,41.163064]
+#stream = tweepy.streaming.Stream(key, CustomStreamListener())
+#stream.filter(track=['#TurkeyBlackOut'])
+
+#looking at keywords?
+stream = tweepy.streaming.Stream(key, CustomStreamListener())
+# change track to keyword required
+stream.filter(locations=GEOBOX_ISTANBUL)
+
+
